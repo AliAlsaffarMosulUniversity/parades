@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>فيديو آية</title>
+  <meta name="description" content="اصنع فيديو تلاوة لآيات من القرآن الكريم مع نصها بالرسم العثماني والتفسير أو الترجمة، مجاناً ومن المتصفح.">
+  <meta name="theme-color" content="#0b1d2a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1d2a'/%3E%3Cpath d='M14 18c8-3 13-1 18 3 5-4 10-6 18-3v28c-8-3-13-1-18 3-5-4-10-6-18-3z' fill='none' stroke='%23e8c860' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cpath d='M32 21v28' stroke='%23e8c860' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="hero">
+    <h1>📖 فيديو آية</h1>
+    <p>اختر السورة والآيات والقارئ، فيصنع المتصفح فيديو للتلاوة مع نص الآيات بالرسم العثماني، آيةً آية مع صوت القارئ، ومعه التفسير أو الترجمة إن شئت. مجاني، ولا يحتاج تسجيلاً ولا تثبيتاً.</p>
+  </header>
+
+  <main>
+    <section class="panel controls">
+      <fieldset>
+        <legend>الآيات</legend>
+        <label>السورة <select id="surah"></select></label>
+        <div class="row">
+          <label>من الآية <input id="from" type="number" min="1" value="1" inputmode="numeric"></label>
+          <label>إلى الآية <input id="to" type="number" min="1" value="3" inputmode="numeric"></label>
+        </div>
+        <label class="check" id="basmalaRow"><input id="basmala" type="checkbox" checked> البدء بالبسملة</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>التلاوة</legend>
+        <label>القارئ <select id="reciter"></select></label>
+        <button type="button" id="listen" class="ghost">▶️ استمع للقارئ</button>
+        <audio id="listenAudio" hidden></audio>
+        <label>تحت الآية <select id="under"></select></label>
+        <label class="check"><input id="showReciter" type="checkbox" checked> كتابة اسم القارئ ومصدر التفسير</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>الشكل</legend>
+        <label>المقاس
+          <select id="aspect">
+            <option value="9:16">عمودي 9:16 (Reels · Shorts · TikTok)</option>
+            <option value="16:9">أفقي 16:9 (YouTube)</option>
+            <option value="1:1">مربع 1:1</option>
+          </select>
+        </label>
+        <label>الخلفية
+          <select id="bgType">
+            <option value="gradient">خلفية هادئة متحركة</option>
+            <option value="image">صورة من جهازي</option>
+          </select>
+        </label>
+        <label id="bgImageRow" hidden>اختر صورة <input id="bgImage" type="file" accept="image/*"></label>
+        <label id="dimRow" hidden>تعتيم الصورة <input id="dim" type="range" min="0" max="0.8" step="0.05" value="0.45"></label>
+        <label>حجم خط الآيات <input id="scale" type="range" min="0.7" max="1.4" step="0.05" value="1"></label>
+        <label>شعار (اختياري) <input id="logo" type="file" accept="image/*"></label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" id="preview" class="ghost">👁️ معاينة</button>
+        <button type="button" id="make" class="primary">🎬 إنشاء الفيديو</button>
+      </div>
+      <p class="note" id="status" role="status"></p>
+      <progress id="progress" max="1" value="0" hidden></progress>
+    </section>
+
+    <section class="panel stage">
+      <canvas id="canvas" aria-label="معاينة الفيديو"></canvas>
+      <div id="result" hidden>
+        <video id="video" controls playsinline></video>
+        <div class="actions">
+          <a id="download" class="primary button" download>⬇️ تحميل الفيديو</a>
+          <button type="button" id="share" class="ghost" hidden>📤 مشاركة</button>
+        </div>
+        <p class="note" id="formatNote"></p>
+      </div>
+    </section>
+  </main>
+
+  <section class="panel text-preview" id="textBox" hidden>
+    <h2>نص الآيات كما سيظهر في الفيديو</h2>
+    <div id="ayahText" class="ayah-text"></div>
+  </section>
+
+  <footer>
+    <p>نص القرآن من مصحف المدينة برواية حفص (Tanzil عبر alquran.cloud)، والتلاوات من everyayah.com، والمختصر في التفسير من بيانات quran.com. تُعرض كما هي دون أي تعديل، ودون موسيقى. الخط: <a href="https://github.com/aliftype/amiri">Amiri Quran</a> (SIL OFL).</p>
+    <p>صدقة جارية، انشره بنية الأجر 🤍</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+@font-face {
+  font-family: "Amiri Quran";
+  src: url("../fonts/AmiriQuran-Regular.ttf") format("truetype");
+  font-display: block;
+}
+
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --line: #2a313b;
+  --text: #e9edf1;
+  --muted: #9aa4b0;
+  --gold: #e8c860;
+  --gold-2: #c99a2e;
+  --on-gold: #1a1406;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f3ec;
+    --panel: #ffffff;
+    --line: #e2dccd;
+    --text: #1d232b;
+    --muted: #5c6672;
+    --gold: #b8871e;
+    --gold-2: #946a10;
+    --on-gold: #ffffff;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.7 "Noto Naskh Arabic", system-ui, "Segoe UI", Tahoma, sans-serif;
+}
+
+.hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 16px 8px;
+}
+.hero h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 4vw, 2.3rem); color: var(--gold); }
+.hero p { margin: 0; color: var(--muted); max-width: 70ch; }
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(280px, 400px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+fieldset { border: 0; margin: 0 0 14px; padding: 0; }
+legend { font-weight: 600; color: var(--gold); margin-bottom: 6px; font-size: 1.05rem; }
+label { display: block; margin: 8px 0; color: var(--muted); font-size: 0.95rem; }
+label.check { display: flex; align-items: center; gap: 8px; color: var(--text); }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+select, input[type="number"], input[type="file"] {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+input[type="range"] { width: 100%; accent-color: var(--gold); }
+input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold); }
+
+button, .button {
+  font: inherit;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+.primary { background: linear-gradient(180deg, var(--gold), var(--gold-2)); color: var(--on-gold); border-color: transparent; }
+.ghost { background: transparent; color: var(--text); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.actions > * { flex: 1 1 140px; }
+button:focus-visible, .button:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.note { color: var(--muted); font-size: 0.92rem; margin: 10px 0 0; min-height: 1.5em; }
+.note.error { color: #ff7b72; }
+progress { width: 100%; height: 10px; accent-color: var(--gold); }
+
+.stage { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.stage canvas, .stage video {
+  display: block;
+  max-width: 100%;
+  max-height: 72vh;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  background: #000;
+}
+#result { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+#result[hidden] { display: none; }
+#result .actions { width: 100%; max-width: 480px; }
+
+.text-preview { max-width: 1200px; margin: 0 auto 16px; width: calc(100% - 32px); }
+.text-preview h2 { margin: 0 0 8px; font-size: 1.05rem; color: var(--gold); }
+.ayah-text { font-family: "Amiri Quran", serif; font-size: 1.6rem; line-height: 2.5; }
+
+footer { max-width: 1200px; margin: 0 auto; padding: 8px 16px 32px; color: var(--muted); font-size: 0.85rem; }
+footer a { color: var(--gold); }

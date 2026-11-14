@@ -12,12 +12,28 @@ const el = {
   bgImageRow: $("bgImageRow"), dim: $("dim"), dimRow: $("dimRow"), scale: $("scale"), logo: $("logo"),
   preview: $("preview"), make: $("make"), status: $("status"), progress: $("progress"), canvas: $("canvas"),
   result: $("result"), video: $("video"), download: $("download"), share: $("share"), formatNote: $("formatNote"),
-  textBox: $("textBox"), ayahText: $("ayahText"),
+  textBox: $("textBox"), ayahText: $("ayahText"), install: $("install"), installHelp: $("installHelp"),
+  installSteps: $("installSteps"), visits: $("visits"), visitsRow: $("visitsRow"),
 };
 const MAX_AYAHS = 50;
 const SETTINGS_KEY = "ayah-video-settings";
 const images = { bg: null, logo: null };
 let busy = false;
+let lastVideoUrl = null;
+
+/** A new video replaces the old one: its file is released from memory and its player cleared. */
+function clearResult() {
+  if (lastVideoUrl) URL.revokeObjectURL(lastVideoUrl);
+  lastVideoUrl = null;
+  el.video.pause();
+  el.video.removeAttribute("src");
+  el.video.load();
+  el.download.removeAttribute("href");
+  el.share.hidden = true;
+  el.share.onclick = null;
+  el.formatNote.textContent = "";
+  el.result.hidden = true;
+}
 
 // ---------- form ----------
 SURAHS.forEach(([name, n], i) => el.surah.add(new Option(`${i + 1}. ${name} (${n} آية)`, i + 1)));
@@ -159,7 +175,7 @@ async function play(record) {
   if (busy) return;
   busy = true;
   el.preview.disabled = el.make.disabled = true;
-  el.result.hidden = record ? true : el.result.hidden;
+  if (record) clearResult();
   saveSettings();
   const audioCtx = new AudioContext({ sampleRate: 48000 });
   try {
@@ -212,6 +228,7 @@ async function play(record) {
     busy = false;
     el.progress.hidden = true;
     el.preview.disabled = el.make.disabled = false;
+    drawIdle();   // don't leave the faded-out last frame on screen
   }
 }
 
@@ -219,6 +236,7 @@ function showResult(blob, type, surah) {
   const { from, to } = range();
   const ext = type.includes("mp4") ? "mp4" : "webm";
   const url = URL.createObjectURL(blob);
+  lastVideoUrl = url;
   el.video.src = url;
   el.download.href = url;
   const name = `ayah-${surah}-${from}${to > from ? "-" + to : ""}.${ext}`;
@@ -250,9 +268,59 @@ el.listen.addEventListener("click", () => {
 el.preview.addEventListener("click", () => play(false));
 el.make.addEventListener("click", () => play(true));
 
+// ---------- install as an app (PWA) ----------
+let installPrompt = null;
+const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; });
+window.addEventListener("appinstalled", () => { installPrompt = null; el.install.hidden = true; });
+if (standalone()) el.install.hidden = true;
+
+function installSteps() {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))
+    return ["افتح الموقع في متصفح Safari.", "اضغط زر المشاركة ⬆️ أسفل الشاشة.", "اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة»."];
+  if (/Android/i.test(ua))
+    return ["افتح الموقع في متصفح Chrome.", "اضغط قائمة النقاط الثلاث ⋮ أعلى الشاشة.", "اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»."];
+  if (/Firefox/i.test(ua))
+    return ["متصفح Firefox على الحاسوب لا يثبّت التطبيقات.", "افتح الموقع في Chrome أو Edge، ثم اضغط زر «📲 تثبيت التطبيق» مرة أخرى."];
+  return ["في Chrome أو Edge: اضغط أيقونة التثبيت ⊕ في نهاية شريط العنوان.", "أو من القائمة ⋮ اختر «تثبيت فيديو آية» (في Edge: التطبيقات ← تثبيت هذا الموقع كتطبيق)."];
+}
+
+el.install.addEventListener("click", async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => {});
+    installPrompt = null;
+    return;
+  }
+  el.installSteps.replaceChildren(Object.assign(document.createElement("ol"), {
+    innerHTML: installSteps().map((t) => `<li>${t}</li>`).join(""),
+  }));
+  el.installHelp.showModal();
+});
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// ---------- visitor counter (abacus.jasoncameron.dev, a free counting service) ----------
+async function countVisit() {
+  const base = "https://abacus.jasoncameron.dev";
+  let counted = false;
+  try { counted = sessionStorage.getItem("ayah-video-counted") === "1"; } catch { /* private mode */ }
+  try {
+    const r = await fetch(`${base}/${counted ? "get" : "hit"}/alialsaffar-parades/visits`);
+    if (!r.ok) return;
+    const { value } = await r.json();
+    if (typeof value !== "number") return;
+    try { sessionStorage.setItem("ayah-video-counted", "1"); } catch { /* private mode */ }
+    el.visits.textContent = value.toLocaleString("ar");
+    el.visitsRow.hidden = false;
+  } catch { /* the counter is optional: stay hidden when it can't be reached */ }
+}
+
 loadSettings();
 syncForm();
 drawIdle();
+if (location.hostname.endsWith("github.io")) countVisit();   // count real visits only
 
 // for automated checks: draw any moment of a prepared video without playing it
 window.__ayahVideo = {

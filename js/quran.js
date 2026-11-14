@@ -2,6 +2,7 @@
 // the Uthmani text (Tanzil) and translations come from api.alquran.cloud, Al-Mukhtasar from the
 // quran.com tafsir data on jsDelivr, and each recited ayah from everyayah.com.
 import { SURAHS, RECITERS } from "./data.js";
+import { t } from "./i18n.js";
 
 const TEXT_API = (surah, edition) => `https://api.alquran.cloud/v1/surah/${surah}/${edition}`;
 const TAFSIR_API = (slug, surah) => `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${slug}/${surah}.json`;
@@ -72,11 +73,11 @@ async function surahEdition(surah, edition) {
       data = (await fetchJson(TEXT_API(surah, edition))).data.ayahs.map((a) => a.text);
     }
   } catch (e) {
-    throw new Error(`تعذّر تنزيل نص سورة ${surahName(surah)}. تأكد من الاتصال بالإنترنت. (${e.message})`);
+    throw new Error(t("textError", { surah: surahName(surah), err: e.message }));
   }
   data = data.map((t) => t.replace(/﻿/g, "").trim());
   if (data.length !== ayahCount(surah))
-    throw new Error(`النص الذي وصل لسورة ${surahName(surah)} ناقص (${data.length} من ${ayahCount(surah)} آية)`);
+    throw new Error(t("textShort", { surah: surahName(surah), got: data.length, count: ayahCount(surah) }));
   memo.set(key, data);
   return data;
 }
@@ -108,12 +109,12 @@ export async function recitation(reciter, surah, ayah) {
       const r = await fetch(AUDIO_URL(reciter, surah, ayah));
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const buf = await r.arrayBuffer();
-      if (buf.byteLength < 1000) throw new Error("ملف قصير");
+      if (buf.byteLength < 1000) throw new Error("file too short");
       return buf;
     } catch (e) {
       err = e;
       await new Promise((ok) => setTimeout(ok, 1200));
     }
   }
-  throw new Error(`تعذّر تنزيل تلاوة الآية ${surah}:${ayah} للقارئ ${RECITERS[reciter] || reciter}. (${err.message})`);
+  throw new Error(t("audioError", { ref: `${surah}:${ayah}`, reciter: RECITERS[reciter] || reciter, err: err.message }));
 }

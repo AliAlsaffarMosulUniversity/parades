@@ -23,3 +23,29 @@ export const RECITERS = {
   "Hani_Rifai_192kbps": "هاني الرفاعي",
   "Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net": "أحمد بن علي العجمي"
 };
+
+// the same surahs in Latin letters (api.alquran.cloud englishName), for the English and German interface
+export const SURAHS_LATIN = ["Al-Faatiha", "Al-Baqara", "Aal-i-Imraan", "An-Nisaa", "Al-Maaida", "Al-An'aam", "Al-A'raaf", "Al-Anfaal", "At-Tawba", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Israa", "Al-Kahf", "Maryam", "Taa-Haa", "Al-Anbiyaa", "Al-Hajj", "Al-Muminoon", "An-Noor", "Al-Furqaan", "Ash-Shu'araa", "An-Naml", "Al-Qasas", "Al-Ankaboot", "Ar-Room", "Luqman", "As-Sajda", "Al-Ahzaab", "Saba", "Faatir", "Yaseen", "As-Saaffaat", "Saad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhaan", "Al-Jaathiya", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujuraat", "Qaaf", "Adh-Dhaariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahmaan", "Al-Waaqia", "Al-Hadid", "Al-Mujaadila", "Al-Hashr", "Al-Mumtahana", "As-Saff", "Al-Jumu'a", "Al-Munaafiqoon", "At-Taghaabun", "At-Talaaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haaqqa", "Al-Ma'aarij", "Nooh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyaama", "Al-Insaan", "Al-Mursalaat", "An-Naba", "An-Naazi'aat", "Abasa", "At-Takwir", "Al-Infitaar", "Al-Mutaffifin", "Al-Inshiqaaq", "Al-Burooj", "At-Taariq", "Al-A'laa", "Al-Ghaashiya", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Lail", "Ad-Dhuhaa", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr", "Al-Bayyina", "Az-Zalzala", "Al-Aadiyaat", "Al-Qaari'a", "At-Takaathur", "Al-Asr", "Al-Humaza", "Al-Fil", "Quraish", "Al-Maa'un", "Al-Kawthar", "Al-Kaafiroon", "An-Nasr", "Al-Masad", "Al-Ikhlaas", "Al-Falaq", "An-Naas"];
+
+// reciters' names in Latin letters
+export const RECITERS_LATIN = {
+  "Alafasy_128kbps": "Mishary Rashid Alafasy",
+  "Abdul_Basit_Murattal_192kbps": "Abdul Basit Abdus Samad (Murattal)",
+  "Abdul_Basit_Mujawwad_128kbps": "Abdul Basit Abdus Samad (Mujawwad)",
+  "Husary_128kbps": "Mahmoud Khalil Al-Husary",
+  "Husary_Muallim_128kbps": "Mahmoud Khalil Al-Husary (Teaching)",
+  "Minshawy_Murattal_128kbps": "Mohamed Siddiq Al-Minshawi",
+  "MaherAlMuaiqly128kbps": "Maher Al-Muaiqly",
+  "Abdurrahmaan_As-Sudais_192kbps": "Abdurrahman As-Sudais",
+  "Saood_ash-Shuraym_128kbps": "Saud Ash-Shuraim",
+  "Ghamadi_40kbps": "Saad Al-Ghamdi",
+  "Abu_Bakr_Ash-Shaatree_128kbps": "Abu Bakr Ash-Shatri",
+  "Yasser_Ad-Dussary_128kbps": "Yasser Ad-Dossary",
+  "Nasser_Alqatami_128kbps": "Nasser Al-Qatami",
+  "Hudhaify_128kbps": "Ali Al-Hudhaify",
+  "Muhammad_Ayyoub_128kbps": "Muhammad Ayyub",
+  "Muhammad_Jibreel_128kbps": "Muhammad Jibreel",
+  "Abdullah_Basfar_192kbps": "Abdullah Basfar",
+  "Hani_Rifai_192kbps": "Hani Ar-Rifai",
+  "Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net": "Ahmed ibn Ali Al-Ajamy"
+};

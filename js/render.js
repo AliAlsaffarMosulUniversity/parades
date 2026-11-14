@@ -33,7 +33,7 @@ function paginate(lines, maxLines) {
 }
 
 export class Renderer {
-  /** opts: aspect, scale (ayah text size), showReciter, reciterName, sourceLine, underDir,
+  /** opts: aspect, scale (ayah text size), footLines (reciter / source), footDir, underDir,
    *  background: {type: "gradient"|"image", image, dim}, logo (HTMLImageElement|null) */
   constructor(canvas, opts) {
     this.canvas = canvas;
@@ -182,12 +182,12 @@ export class Renderer {
         this.opts.underDir || "rtl", Renderer.fade(t, under.start, under.end));
 
     // reciter and source at the bottom
-    const foot = [];
-    if (this.opts.showReciter && this.opts.reciterName) foot.push(`بصوت القارئ ${this.opts.reciterName}`);
-    if (this.opts.sourceLine) foot.push(this.opts.sourceLine);
+    const foot = this.opts.footLines || [];
     if (foot.length) {
       const fs = w * (portrait ? 0.026 : 0.016);
-      this.text(foot, TEXT_FONT_AR, fs, fs * 1.5, h * (portrait ? 0.9 : 0.92), "rgba(235,235,235,0.85)", "rtl", 1);
+      const rtl = (this.opts.footDir || "rtl") === "rtl";
+      this.text(foot, rtl ? TEXT_FONT_AR : TEXT_FONT_LATIN, fs, fs * 1.5, h * (portrait ? 0.9 : 0.92),
+        "rgba(235,235,235,0.85)", rtl ? "rtl" : "ltr", 1);
     }
     if (this.opts.logo) {
       const lw = w * 0.13;

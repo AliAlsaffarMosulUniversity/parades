@@ -2,11 +2,11 @@
 // are served from the cache and refreshed in the background (so an update shows on the next
 // visit); Quran text, tafsir and recitations are kept once fetched, so a surah used before
 // can be made into a video again offline.
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = `shell-${VERSION}`;
 const DATA = "quran-data-v1";
 const FILES = [
-  "./", "index.html", "css/style.css", "js/app.js", "js/data.js", "js/quran.js", "js/render.js",
+  "./", "index.html", "css/style.css", "js/app.js", "js/data.js", "js/i18n.js", "js/quran.js", "js/render.js",
   "fonts/AmiriQuran-Regular.ttf", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
 ];
 const DATA_HOSTS = ["api.alquran.cloud", "everyayah.com", "cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];

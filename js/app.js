@@ -3,6 +3,8 @@ import {
   SURAHS, RECITERS, UNDER_AYAH, surahName, ayahCount, wantsBasmala, getAyahs, recitation, arabicNumber,
 } from "./quran.js";
 import { Renderer, QURAN_FONT, TEXT_FONT_AR, TEXT_FONT_LATIN } from "./render.js";
+import { SURAHS_LATIN, RECITERS_LATIN } from "./data.js";
+import { t, getLang, setLang, applyStatic, isRtl, LANGS } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -13,7 +15,7 @@ const el = {
   preview: $("preview"), make: $("make"), status: $("status"), progress: $("progress"), canvas: $("canvas"),
   result: $("result"), video: $("video"), download: $("download"), share: $("share"), formatNote: $("formatNote"),
   textBox: $("textBox"), ayahText: $("ayahText"), install: $("install"), installHelp: $("installHelp"),
-  installSteps: $("installSteps"), visits: $("visits"), visitsRow: $("visitsRow"),
+  installSteps: $("installSteps"), visits: $("visits"), visitsRow: $("visitsRow"), lang: $("lang"), theme: $("theme"),
 };
 const MAX_AYAHS = 50;
 const SETTINGS_KEY = "ayah-video-settings";
@@ -36,9 +38,27 @@ function clearResult() {
 }
 
 // ---------- form ----------
-SURAHS.forEach(([name, n], i) => el.surah.add(new Option(`${i + 1}. ${name} (${n} آية)`, i + 1)));
-Object.entries(RECITERS).forEach(([k, v]) => el.reciter.add(new Option(v, k)));
-Object.entries(UNDER_AYAH).forEach(([k, v]) => el.under.add(new Option(v[0], k)));
+const UNDER_KEYS = { "ar.mukhtasar": "mukhtasar", "ar.muyassar": "muyassar", "en.sahih": "sahih",
+  "de.bubenheim": "bubenheim", "fr.hamidullah": "hamidullah", none: "none" };
+const reciterName = (k) => (isRtl() ? RECITERS[k] : RECITERS_LATIN[k] || RECITERS[k]);
+
+/** (Re)fill the menus in the interface language, keeping what is selected. */
+function buildOptions() {
+  const keep = { surah: el.surah.value, reciter: el.reciter.value, under: el.under.value };
+  el.surah.replaceChildren(...SURAHS.map(([name, n], i) => new Option(
+    t("surahOption", { n: i + 1, name: isRtl() ? name : `${SURAHS_LATIN[i]} · ${name}`, count: n }), i + 1)));
+  el.reciter.replaceChildren(...Object.keys(RECITERS).map((k) => new Option(reciterName(k), k)));
+  el.under.replaceChildren(...Object.entries(UNDER_AYAH).map(([k, v]) => {
+    const key = `under_${UNDER_KEYS[k]}`;
+    return new Option(t(key) !== key ? t(key) : v[0], k);
+  }));
+  for (const [k, v] of Object.entries(keep)) if (v) el[k].value = v;
+}
+
+Object.entries(LANGS).forEach(([k, v]) => el.lang.add(new Option(v, k)));
+el.lang.value = getLang();
+applyStatic();
+buildOptions();
 
 function loadSettings() {
   let s = {};
@@ -101,9 +121,10 @@ function renderer(scenes = null, surah = 1) {
   const r = new Renderer(el.canvas, {
     aspect: el.aspect.value,
     scale: +el.scale.value,
-    showReciter: el.showReciter.checked,
-    reciterName: RECITERS[el.reciter.value],
-    sourceLine: el.showReciter.checked ? UNDER_AYAH[under][1] : "",
+    footLines: el.showReciter.checked
+      ? [t("recitedBy", { name: reciterName(el.reciter.value) }), under !== "none" ? t(`src_${UNDER_KEYS[under]}`) : ""].filter(Boolean)
+      : [],
+    footDir: isRtl() ? "rtl" : "ltr",
     underDir: UNDER_AYAH[under][2],
     background: { type: el.bgType.value, image: images.bg, dim: +el.dim.value },
     logo: images.logo,
@@ -125,24 +146,24 @@ async function drawIdle() {
 // ---------- the ayahs, with their recitation ----------
 async function loadScenes(audioCtx) {
   const { surah, from, to } = range();
-  if (to - from + 1 > MAX_AYAHS) throw new Error(`اختر ${MAX_AYAHS} آية على الأكثر في الفيديو الواحد.`);
-  status("📖 جاري تنزيل نص الآيات…");
+  if (to - from + 1 > MAX_AYAHS) throw new Error(t("tooMany", { max: MAX_AYAHS }));
+  status(t("loadingText"));
   const scenes = await getAyahs(surah, from, to, el.under.value, el.basmala.checked);
   showText(scenes);
   let done = 0;
-  status(`🎙️ جاري تنزيل التلاوة… 0/${scenes.length}`);
+  status(t("loadingAudio", { done: 0, all: scenes.length }));
   const buffers = await Promise.all(scenes.map(async (sc) => {
     const bytes = await recitation(el.reciter.value, sc.surah, sc.audioAyah);
     const buf = await audioCtx.decodeAudioData(bytes);
-    status(`🎙️ جاري تنزيل التلاوة… ${++done}/${scenes.length}`);
+    status(t("loadingAudio", { done: ++done, all: scenes.length }));
     return buf;
   }));
   // one continuous track: each ayah stays on screen exactly while it is recited
-  let t = 0;
-  scenes.forEach((sc, i) => { sc.start = t; sc.duration = buffers[i].duration; t += sc.duration; });
+  let clock = 0;
+  scenes.forEach((sc, i) => { sc.start = clock; sc.duration = buffers[i].duration; clock += sc.duration; });
   const tail = 1.0;
   scenes[scenes.length - 1].duration += tail;
-  const total = t + tail;
+  const total = clock + tail;
   const rate = audioCtx.sampleRate;
   const track = audioCtx.createBuffer(2, Math.ceil(total * rate), rate);
   let offset = 0;
@@ -191,7 +212,7 @@ async function play(record) {
     const chunks = [];
     const mime = record ? pickMime() : "";
     if (record) {
-      if (!window.MediaRecorder || !el.canvas.captureStream) throw new Error("هذا المتصفح لا يدعم تسجيل الفيديو. جرّب Chrome أو Edge أو Safari حديثاً.");
+      if (!window.MediaRecorder || !el.canvas.captureStream) throw new Error(t("noRecorder"));
       const dest = audioCtx.createMediaStreamDestination();
       src.connect(dest);
       const stream = new MediaStream([...el.canvas.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
@@ -199,16 +220,16 @@ async function play(record) {
       recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
       recorder.start(1000);
     }
-    status(record ? "🔴 جاري التسجيل… أبقِ هذه الصفحة ظاهرة حتى ينتهي" : "▶️ معاينة…");
+    status(record ? t("recording") : t("previewing"));
     el.progress.hidden = false;
     const t0 = audioCtx.currentTime + 0.25;
     src.start(t0);
     await new Promise((done) => {
       const frame = () => {
-        const t = audioCtx.currentTime - t0;
-        r.draw(Math.max(0, t));
-        el.progress.value = Math.min(1, Math.max(0, t / total));
-        if (t >= total) return done();
+        const now = audioCtx.currentTime - t0;
+        r.draw(Math.max(0, now));
+        el.progress.value = Math.min(1, Math.max(0, now / total));
+        if (now >= total) return done();
         requestAnimationFrame(frame);
       };
       requestAnimationFrame(frame);
@@ -219,7 +240,7 @@ async function play(record) {
       const type = recorder.mimeType || mime || "video/webm";
       const blob = new Blob(chunks, { type });
       showResult(blob, type, surah);
-    } else status("✅ انتهت المعاينة");
+    } else status(t("previewDone"));
   } catch (e) {
     console.error(e);
     status(e.message || String(e), true);
@@ -243,13 +264,12 @@ function showResult(blob, type, surah) {
   el.download.download = name;
   el.result.hidden = false;
   const h264 = /avc1|h264/i.test(type);
-  const size = `الحجم ${(blob.size / 1048576).toFixed(1)} ميغابايت.`;
-  el.formatNote.textContent = h264 ? size : `${size} سُجّل الفيديو بصيغة ${ext.toUpperCase()} غير H.264 لأن هذا المتصفح لا يدعمها؛ `
-    + "يعمل على YouTube وواتساب، ولأفضل توافق مع Instagram وTikTok استخدم Chrome أو Edge أو Safari بإصدار حديث.";
+  const size = t("size", { mb: (blob.size / 1048576).toFixed(1) });
+  el.formatNote.textContent = h264 ? size : `${size} ${t("notH264", { ext: ext.toUpperCase() })}`;
   const file = new File([blob], name, { type });
   el.share.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
-  el.share.onclick = () => navigator.share({ files: [file], title: `سورة ${surahName(surah)}` }).catch(() => {});
-  status("✅ الفيديو جاهز");
+  el.share.onclick = () => navigator.share({ files: [file], title: isRtl() ? `سورة ${surahName(surah)}` : SURAHS_LATIN[surah - 1] }).catch(() => {});
+  status(t("ready"));
   el.result.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
@@ -278,12 +298,12 @@ if (standalone()) el.install.hidden = true;
 function installSteps() {
   const ua = navigator.userAgent;
   if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))
-    return ["افتح الموقع في متصفح Safari.", "اضغط زر المشاركة ⬆️ أسفل الشاشة.", "اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة»."];
+    return t("stepsIos");
   if (/Android/i.test(ua))
-    return ["افتح الموقع في متصفح Chrome.", "اضغط قائمة النقاط الثلاث ⋮ أعلى الشاشة.", "اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»."];
+    return t("stepsAndroid");
   if (/Firefox/i.test(ua))
-    return ["متصفح Firefox على الحاسوب لا يثبّت التطبيقات.", "افتح الموقع في Chrome أو Edge، ثم اضغط زر «📲 تثبيت التطبيق» مرة أخرى."];
-  return ["في Chrome أو Edge: اضغط أيقونة التثبيت ⊕ في نهاية شريط العنوان.", "أو من القائمة ⋮ اختر «تثبيت فيديو آية» (في Edge: التطبيقات ← تثبيت هذا الموقع كتطبيق)."];
+    return t("stepsFirefox");
+  return t("stepsDesktop");
 }
 
 el.install.addEventListener("click", async () => {
@@ -293,13 +313,48 @@ el.install.addEventListener("click", async () => {
     installPrompt = null;
     return;
   }
-  el.installSteps.replaceChildren(Object.assign(document.createElement("ol"), {
-    innerHTML: installSteps().map((t) => `<li>${t}</li>`).join(""),
-  }));
+  const ol = document.createElement("ol");
+  ol.append(...installSteps().map((s) => Object.assign(document.createElement("li"), { textContent: s })));
+  el.installSteps.replaceChildren(ol);
   el.installHelp.showModal();
 });
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// ---------- language and day/night ----------
+let visitCount = null;
+function showVisits() {
+  if (visitCount == null) return;
+  el.visits.textContent = visitCount.toLocaleString(getLang());
+  el.visitsRow.hidden = false;
+}
+
+el.lang.addEventListener("change", () => {
+  setLang(el.lang.value);
+  buildOptions();
+  syncTheme();
+  showVisits();
+  status("");
+  drawIdle();
+});
+
+const darkNow = () => (document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme === "dark"
+  : !matchMedia("(prefers-color-scheme: light)").matches);
+function syncTheme() {
+  const dark = darkNow();
+  el.theme.textContent = dark ? t("themeDay") : t("themeNight");
+  el.theme.setAttribute("aria-pressed", String(!dark));
+  document.querySelector('meta[name="theme-color"]').content = dark ? "#0b1d2a" : "#f6f3ec";
+}
+el.theme.addEventListener("click", () => {
+  const next = darkNow() ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("ayah-video-theme", next); } catch { /* private mode */ }
+  syncTheme();
+});
+matchMedia("(prefers-color-scheme: light)").addEventListener("change", syncTheme);
+syncTheme();
 
 // ---------- visitor counter (abacus.jasoncameron.dev, a free counting service) ----------
 async function countVisit() {
@@ -312,8 +367,8 @@ async function countVisit() {
     const { value } = await r.json();
     if (typeof value !== "number") return;
     try { sessionStorage.setItem("ayah-video-counted", "1"); } catch { /* private mode */ }
-    el.visits.textContent = value.toLocaleString("ar");
-    el.visitsRow.hidden = false;
+    visitCount = value;
+    showVisits();
   } catch { /* the counter is optional: stay hidden when it can't be reached */ }
 }
 

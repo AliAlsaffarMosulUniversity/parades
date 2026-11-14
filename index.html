@@ -14,74 +14,84 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    // apply the saved day/night choice before the page paints, so it never flashes
+    try { const m = localStorage.getItem("ayah-video-theme"); if (m) document.documentElement.dataset.theme = m; } catch (e) {}
+  </script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="hero">
     <div class="hero-top">
-      <h1>📖 فيديو آية</h1>
-      <button type="button" id="install" class="ghost install">📲 تثبيت التطبيق</button>
+      <h1 data-i18n="appName">📖 فيديو آية</h1>
+      <div class="tools">
+        <label class="lang"><span class="sr-only" data-i18n="language">اللغة</span>
+          <select id="lang" aria-label="Language"></select>
+        </label>
+        <button type="button" id="theme" class="ghost small" aria-pressed="false"></button>
+        <button type="button" id="install" class="ghost small" data-i18n="install">📲 تثبيت التطبيق</button>
+      </div>
     </div>
-    <p>اختر السورة والآيات والقارئ، فيصنع المتصفح فيديو للتلاوة مع نص الآيات بالرسم العثماني، آيةً آية مع صوت القارئ، ومعه التفسير أو الترجمة إن شئت. مجاني، ولا يحتاج تسجيلاً ولا تثبيتاً.</p>
+    <p data-i18n="intro"></p>
   </header>
 
   <main>
     <section class="panel controls">
       <fieldset>
-        <legend>الآيات</legend>
-        <label>السورة <select id="surah"></select></label>
+        <legend data-i18n="ayahs">الآيات</legend>
+        <label><span data-i18n="surah">السورة</span> <select id="surah"></select></label>
         <div class="row">
-          <label>من الآية <input id="from" type="number" min="1" value="1" inputmode="numeric"></label>
-          <label>إلى الآية <input id="to" type="number" min="1" value="3" inputmode="numeric"></label>
+          <label><span data-i18n="from">من الآية</span> <input id="from" type="number" min="1" value="1" inputmode="numeric"></label>
+          <label><span data-i18n="to">إلى الآية</span> <input id="to" type="number" min="1" value="3" inputmode="numeric"></label>
         </div>
-        <label class="check" id="basmalaRow"><input id="basmala" type="checkbox" checked> البدء بالبسملة</label>
+        <label class="check" id="basmalaRow"><input id="basmala" type="checkbox" checked> <span data-i18n="basmala">البدء بالبسملة</span></label>
       </fieldset>
 
       <fieldset>
-        <legend>التلاوة</legend>
-        <label>القارئ <select id="reciter"></select></label>
-        <button type="button" id="listen" class="ghost">▶️ استمع للقارئ</button>
+        <legend data-i18n="recitation">التلاوة</legend>
+        <label><span data-i18n="reciter">القارئ</span> <select id="reciter"></select></label>
+        <button type="button" id="listen" class="ghost" data-i18n="listen">▶️ استمع للقارئ</button>
         <audio id="listenAudio" hidden></audio>
-        <label>تحت الآية <select id="under"></select></label>
-        <label class="check"><input id="showReciter" type="checkbox" checked> كتابة اسم القارئ ومصدر التفسير</label>
+        <label><span data-i18n="under">تحت الآية</span> <select id="under"></select></label>
+        <label class="check"><input id="showReciter" type="checkbox" checked> <span data-i18n="showReciter">كتابة اسم القارئ ومصدر التفسير</span></label>
       </fieldset>
 
       <fieldset>
-        <legend>الشكل</legend>
-        <label>المقاس
+        <legend data-i18n="look">الشكل</legend>
+        <label><span data-i18n="aspect">المقاس</span>
           <select id="aspect">
-            <option value="9:16">عمودي 9:16 (Reels · Shorts · TikTok)</option>
-            <option value="16:9">أفقي 16:9 (YouTube)</option>
-            <option value="1:1">مربع 1:1</option>
+            <option value="9:16" data-i18n="aspect916">عمودي 9:16 (Reels · Shorts · TikTok)</option>
+            <option value="16:9" data-i18n="aspect169">أفقي 16:9 (YouTube)</option>
+            <option value="1:1" data-i18n="aspect11">مربع 1:1</option>
           </select>
         </label>
-        <label>الخلفية
+        <label><span data-i18n="background">الخلفية</span>
           <select id="bgType">
-            <option value="gradient">خلفية هادئة متحركة</option>
-            <option value="image">صورة من جهازي</option>
+            <option value="gradient" data-i18n="bgGradient">خلفية هادئة متحركة</option>
+            <option value="image" data-i18n="bgImage">صورة من جهازي</option>
           </select>
         </label>
-        <label id="bgImageRow" hidden>اختر صورة <input id="bgImage" type="file" accept="image/*"></label>
-        <label id="dimRow" hidden>تعتيم الصورة <input id="dim" type="range" min="0" max="0.8" step="0.05" value="0.45"></label>
-        <label>حجم خط الآيات <input id="scale" type="range" min="0.7" max="1.4" step="0.05" value="1"></label>
-        <label>شعار (اختياري) <input id="logo" type="file" accept="image/*"></label>
+        <label id="bgImageRow" hidden><span data-i18n="chooseImage">اختر صورة</span> <input id="bgImage" type="file" accept="image/*"></label>
+        <label id="dimRow" hidden><span data-i18n="dim">تعتيم الصورة</span> <input id="dim" type="range" min="0" max="0.8" step="0.05" value="0.45"></label>
+        <label><span data-i18n="scale">حجم خط الآيات</span> <input id="scale" type="range" min="0.7" max="1.4" step="0.05" value="1"></label>
+        <label><span data-i18n="logo">شعار (اختياري)</span> <input id="logo" type="file" accept="image/*"></label>
       </fieldset>
 
       <div class="actions">
-        <button type="button" id="preview" class="ghost">👁️ معاينة</button>
-        <button type="button" id="make" class="primary">🎬 إنشاء الفيديو</button>
+        <button type="button" id="preview" class="ghost" data-i18n="preview">👁️ معاينة</button>
+        <button type="button" id="make" class="primary" data-i18n="make">🎬 إنشاء الفيديو</button>
       </div>
       <p class="note" id="status" role="status"></p>
       <progress id="progress" max="1" value="0" hidden></progress>
     </section>
 
     <section class="panel stage">
-      <canvas id="canvas" aria-label="معاينة الفيديو"></canvas>
+      <canvas id="canvas" data-i18n-aria="canvasLabel"></canvas>
       <div id="result" hidden>
-        <h2 class="result-title">✅ الفيديو جاهز</h2>
+        <h2 class="result-title" data-i18n="ready">✅ الفيديو جاهز</h2>
         <div class="actions">
-          <a id="download" class="primary button big" download>⬇️ تحميل الفيديو</a>
-          <button type="button" id="share" class="ghost" hidden>📤 مشاركة</button>
+          <a id="download" class="primary button big" download data-i18n="download">⬇️ تحميل الفيديو</a>
+          <button type="button" id="share" class="ghost" hidden data-i18n="share">📤 مشاركة</button>
         </div>
         <p class="note" id="formatNote"></p>
         <video id="video" controls playsinline></video>
@@ -90,29 +100,29 @@
   </main>
 
   <section class="panel text-preview" id="textBox" hidden>
-    <h2>نص الآيات كما سيظهر في الفيديو</h2>
-    <div id="ayahText" class="ayah-text"></div>
+    <h2 data-i18n="textTitle">نص الآيات كما سيظهر في الفيديو</h2>
+    <div id="ayahText" class="ayah-text" lang="ar" dir="rtl"></div>
   </section>
 
   <section class="panel about" aria-labelledby="aboutTitle">
-    <h2 id="aboutTitle">معلومات التطبيق</h2>
+    <h2 id="aboutTitle" data-i18n="about">معلومات التطبيق</h2>
     <dl>
-      <div><dt>الوقف</dt><dd>وقف لله تعالى</dd></div>
-      <div><dt>المصمم</dt><dd>علي الصفار</dd></div>
-      <div><dt>الاتصال</dt><dd><a href="tel:+9647740856155" dir="ltr">07740856155</a></dd></div>
-      <div id="visitsRow" hidden><dt>عدد الزوار</dt><dd id="visits" dir="ltr"></dd></div>
+      <div><dt data-i18n="waqfLabel">الوقف</dt><dd data-i18n="waqf">وقف لله تعالى</dd></div>
+      <div><dt data-i18n="designerLabel">المصمم</dt><dd data-i18n="designer">علي الصفار</dd></div>
+      <div><dt data-i18n="contactLabel">الاتصال</dt><dd><a href="tel:+9647740856155" dir="ltr">07740856155</a></dd></div>
+      <div id="visitsRow" hidden><dt data-i18n="visitsLabel">عدد الزوار</dt><dd id="visits" dir="ltr"></dd></div>
     </dl>
   </section>
 
   <dialog id="installHelp">
-    <h2>تثبيت التطبيق</h2>
+    <h2 data-i18n="installTitle">تثبيت التطبيق</h2>
     <div id="installSteps"></div>
-    <form method="dialog"><button class="primary">حسناً</button></form>
+    <form method="dialog"><button class="primary" data-i18n="ok">حسناً</button></form>
   </dialog>
 
   <footer>
-    <p>نص القرآن من مصحف المدينة برواية حفص (Tanzil عبر alquran.cloud)، والتلاوات من everyayah.com، والمختصر في التفسير من بيانات quran.com. تُعرض كما هي دون أي تعديل، ودون موسيقى. الخط: <a href="https://github.com/aliftype/amiri">Amiri Quran</a> (SIL OFL).</p>
-    <p>صدقة جارية، انشره بنية الأجر 🤍</p>
+    <p data-i18n="footer"></p>
+    <p data-i18n="footer2"></p>
   </footer>
 
   <script type="module" src="js/app.js"></script>
